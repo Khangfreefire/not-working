@@ -1,22 +1,11 @@
--- Fast Attack Dual Flintlock with Toggle GUI Script for Blox Fruits
-
+-- Script Dual Flintlock - Fast Attack (Cất và Lấy lại Súng)
 local player = game.Players.LocalPlayer
-local gun1 = nil  -- Flintlock Gun 1
-local gun2 = nil  -- Flintlock Gun 2
-local isAttacking = false  -- Biến để kiểm tra trạng thái bắn
-local attackConnection = nil  -- Kết nối tấn công
+local gun1 = nil
+local gun2 = nil
+local isAttacking = false  -- Trạng thái tấn công
+local backpack = player.Backpack  -- Địa chỉ balo
 
--- Tạo GUI để bật/tắt tính năng
-local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = player.PlayerGui
-local toggleButton = Instance.new("TextButton")
-toggleButton.Parent = screenGui
-toggleButton.Text = "Toggle Attack"
-toggleButton.Size = UDim2.new(0, 200, 0, 50)
-toggleButton.Position = UDim2.new(0, 50, 0, 50)
-toggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- Màu đỏ khi tắt
-
--- Tìm kiếm hai khẩu Flintlock trong nhân vật
+-- Tìm kiếm hai khẩu súng Flintlock trong nhân vật
 for _, v in pairs(player.Character:GetChildren()) do
     if v:IsA("Tool") then
         if v.Name == "Flintlock" and not gun1 then
@@ -32,14 +21,23 @@ if not gun1 or not gun2 then
     return
 end
 
--- Hàm để bắt đầu tấn công
+-- Hàm để bắt đầu tấn công nhanh
 function startAttacking()
     isAttacking = true
-    toggleButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)  -- Đổi màu nút thành xanh khi bật tấn công
     while isAttacking do
         if gun1.Parent == player.Character and gun2.Parent == player.Character then
+            -- Cất súng vào balo và lấy lại liên tục
+            gun1.Parent = backpack  -- Cất súng 1 vào balo
+            wait(0.05)  -- Thời gian ngắn giữa các lần cất lấy
+            gun1.Parent = player.Character  -- Lấy súng 1 ra
+            gun2.Parent = backpack  -- Cất súng 2 vào balo
+            wait(0.05)  -- Thời gian ngắn giữa các lần cất lấy
+            gun2.Parent = player.Character  -- Lấy súng 2 ra
+
+            -- Kích hoạt bắn súng
             gun1:Activate()  -- Bắn súng 1
             gun2:Activate()  -- Bắn súng 2
+
             wait(0.1)  -- Thời gian giữa các lần bắn (có thể điều chỉnh)
         end
         wait(0.05)  -- Chờ giữa các lần lặp
@@ -49,14 +47,16 @@ end
 -- Hàm để dừng tấn công
 function stopAttacking()
     isAttacking = false
-    toggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- Đổi màu nút thành đỏ khi tắt tấn công
 end
 
--- Bắt sự kiện khi người chơi nhấn nút Toggle Attack
-toggleButton.MouseButton1Click:Connect(function()
-    if isAttacking then
-        stopAttacking()  -- Nếu đang tấn công, thì dừng
-    else
-        startAttacking()  -- Nếu không đang tấn công, thì bắt đầu
+-- Bắt sự kiện để bắt đầu hoặc dừng tấn công
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.T then  -- Nhấn phím T để bắt đầu/tắt tấn công
+        if isAttacking then
+            stopAttacking()  -- Dừng tấn công
+        else
+            startAttacking()  -- Bắt đầu tấn công
+        end
     end
 end)
